@@ -1,40 +1,26 @@
 /*! bittorrent-lsd. MIT License. WebTorrent LLC <https://webtorrent.io/opensource> */
+
 import dgram from 'dgram'
 import { EventEmitter } from 'events'
 import Debug from 'debug'
+import os from 'os'
+import crypto from 'crypto'
 
-const debug = Debug('bittorrent-lsd')
+import { LSD_HOST, LSD_PORT } from './lsd-constants.js'
+import { parseAnnounce } from './announce.js'
 
-const ANNOUNCE_INTERVAL = 300000 // 5min
-const LSD_HOST = '239.192.152.143'
-const LSD_PORT = 6771
+const debug = Debug('bittorrent-lht')
+export const cookiePrefix = 'bittorrent-lht-'
 
 // TODO: Implement IPv6
 
-class LSD extends EventEmitter {
-  constructor (opts = {}) {
+export class Lht extends EventEmitter {
+  constructor () {
     super()
 
-    if (!opts.peerId) throw new Error('Option `peerId` is required')
-    if (!opts.infoHash) throw new Error('Option `infoHash` is required')
-    if (!opts.port) throw new Error('Option `port` is required')
-
-    this.peerId = typeof opts.peerId === 'string'
-      ? opts.peerId
-      : opts.peerId.toString('hex')
-
-    this.infoHash = typeof opts.infoHash === 'string'
-      ? opts.infoHash.toLowerCase()
-      : opts.infoHash.toString('hex')
-
-    this.port = typeof opts.port === 'string'
-      ? opts.port
-      : opts.port.toString()
-
-    this.cookie = `bittorrent-lsd-${this.peerId}`
+    this.cookie = `${cookiePrefix}${os.hostname()}-${crypto.randomBytes(20).toString('hex')}`
 
     this.destroyed = false
-    this.annouceIntervalId = null
 
     this.server = dgram.createSocket({ type: 'udp4', reuseAddr: true })
 
@@ -51,14 +37,25 @@ class LSD extends EventEmitter {
     const onMessage = (msg, rinfo) => {
       debug('message', msg.toString(), `${rinfo.address}:${rinfo.port}`)
 
-      const parsedAnnounce = this._parseAnnounce(msg.toString())
+      const parsedAnnounce = parseAnnounce(msg.toString(), (error) => this.emit('warning', error))
 
       if (parsedAnnounce === null) return
-      if (parsedAnnounce.cookie === this.cookie) return
+      const { cookie, infoHash, port, type } = parsedAnnounce
+      if ((cookie ?? '').startsWith(cookiePrefix)) return
 
-      parsedAnnounce.infoHash.forEach(infoHash => {
-        this.emit('peer', `${rinfo.address}:${parsedAnnounce.port}`, infoHash)
-      })
+      switch (type) {
+        case 'LSD':
+          infoHash.forEach((i) => {
+            const peer = `${rinfo.address}:${port}`
+            this.emit('peer', peer, i)
+          })
+          break
+        case 'LHT':
+          this.emit('lht', infoHash[0])
+          break
+        default:
+          break
+      }
     }
 
     const onError = (err) => {
@@ -70,62 +67,8 @@ class LSD extends EventEmitter {
     this.server.on('error', onError)
   }
 
-  _parseAnnounce (announce) {
-    const checkHost = (host) => {
-      return /^(239.192.152.143|\[ff15::efc0:988f]):6771$/.test(host)
-    }
-
-    const checkPort = (port) => {
-      return /^\d+$/.test(port)
-    }
-
-    const checkInfoHash = (infoHash) => {
-      return /^[0-9a-fA-F]{40}$/.test(infoHash)
-    }
-
-    debug('parse announce', announce)
-    const sections = announce.split('\r\n')
-
-    if (sections[0] !== 'BT-SEARCH * HTTP/1.1') {
-      this.emit('warning', 'Invalid LSD announce (header)')
-      return null
-    }
-
-    const host = sections[1].split('Host: ')[1]
-
-    if (!checkHost(host)) {
-      this.emit('warning', 'Invalid LSD announce (host)')
-      return null
-    }
-
-    const port = sections[2].split('Port: ')[1]
-
-    if (!checkPort(port)) {
-      this.emit('warning', 'Invalid LSD announce (port)')
-      return null
-    }
-
-    const infoHash = sections
-      .filter(section => section.includes('Infohash: '))
-      .map(section => section.split('Infohash: ')[1])
-      .filter(infoHash => checkInfoHash(infoHash))
-
-    if (infoHash.length === 0) {
-      this.emit('warning', 'Invalid LSD announce (infoHash)')
-      return null
-    }
-
-    const cookie = sections
-      .filter(section => section.includes('cookie: '))
-      .map(section => section.split('cookie: ')[1])
-      .reduce((acc, cur) => cur, null)
-
-    return {
-      host,
-      port,
-      infoHash,
-      cookie
-    }
+  send (msg) {
+    this.server.send(msg, LSD_PORT, LSD_HOST)
   }
 
   destroy (cb) {
@@ -133,27 +76,11 @@ class LSD extends EventEmitter {
     this.destroyed = true
     debug('destroy')
 
-    clearInterval(this.annouceIntervalId)
     this.server.close(cb)
   }
 
   start () {
     debug('start')
     this.server.bind(LSD_PORT)
-    this._announce()
-
-    this.annouceIntervalId = setInterval(() => {
-      this._announce()
-    }, ANNOUNCE_INTERVAL)
-  }
-
-  _announce () {
-    debug('send announce')
-    const host = `${LSD_HOST}:${LSD_PORT}`
-
-    const announce = `BT-SEARCH * HTTP/1.1\r\nHost: ${host}\r\nPort: ${this.port}\r\nInfohash: ${this.infoHash}\r\ncookie: ${this.cookie}\r\n\r\n\r\n`
-    this.server.send(announce, LSD_PORT, LSD_HOST)
   }
 }
-
-export default LSD
