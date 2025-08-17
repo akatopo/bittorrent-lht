@@ -2,36 +2,28 @@ import test from 'tape'
 import sinon from 'sinon'
 import dgram from 'dgram'
 import os from 'os'
-import * as common from './common.js'
 
-import LSD from '../index.js'
+import { Lht } from '../lht.js'
 
 test('should emit a warning when addMembership fails', t => {
-  const opts = {
-    peerId: common.randomId(),
-    infoHash: common.randomHash(),
-    port: common.randomPort()
-  }
-  const lsd = new LSD(opts)
-
-  sinon.stub(lsd.server, 'addMembership').throws()
-
-  lsd.on('warning', (err) => {
-    t.ok(err)
-
-    lsd.destroy(() => t.end())
+  const lht = new Lht()
+  t.teardown(() => {
+    lht.server.addMembership.restore()
   })
 
-  lsd.start()
+  sinon.stub(lht.server, 'addMembership').throws()
+
+  lht.on('warning', (err) => {
+    t.ok(err)
+
+    lht.destroy(() => t.end())
+  })
+
+  lht.start()
 })
 
 test('should emit peer when receiving a valid announce', t => {
-  const opts = {
-    peerId: common.randomId(),
-    infoHash: common.randomHash(),
-    port: common.randomPort()
-  }
-  const lsd = new LSD(opts)
+  const lht = new Lht()
   const client = dgram.createSocket('udp4')
 
   const host = '239.192.152.143:6771'
@@ -48,11 +40,11 @@ test('should emit peer when receiving a valid announce', t => {
     client.close()
   })
 
-  lsd.on('error', (err) => {
+  lht.on('error', (err) => {
     t.error(err)
   })
 
-  lsd.on('peer', (peerAddress, infoHash) => {
+  lht.on('peer', (peerAddress, infoHash) => {
     const addresses = Object.values(os.networkInterfaces())
       .flatMap(i => i)
       .filter(i => !i.internal && i.family === 'IPv4')
@@ -61,94 +53,8 @@ test('should emit peer when receiving a valid announce', t => {
     t.ok(addresses.includes(peerAddress))
     t.equal(infoHash, infoHash)
 
-    lsd.destroy(() => t.end())
+    lht.destroy(() => t.end())
   })
 
-  lsd.start()
-})
-
-test('should not announce once when 3min passed', t => {
-  const clock = sinon.useFakeTimers(new Date())
-  let counter = 0
-
-  const opts = {
-    peerId: common.randomId(),
-    infoHash: common.randomHash(),
-    port: common.randomPort()
-  }
-  const lsd = new LSD(opts)
-  const client = dgram.createSocket({ type: 'udp4', reuseAddr: true })
-
-  const host = '239.192.152.143:6771'
-  const port = opts.port.toString()
-  const infoHash = opts.infoHash.toString('hex')
-  const cookie = `bittorrent-lsd-${opts.peerId.toString('hex')}`
-
-  client.bind(6771, () => {
-    client.addMembership('239.192.152.143')
-  })
-
-  client.on('message', (msg, rinfo) => {
-    const announce = `BT-SEARCH * HTTP/1.1\r\nHost: ${host}\r\nPort: ${port}\r\nInfohash: ${infoHash}\r\ncookie: ${cookie}\r\n\r\n\r\n`
-
-    t.equal(msg.toString(), announce)
-    counter++
-
-    if (counter === 2) {
-      t.fail()
-    } else {
-      clock.tick(180000) // 3min
-
-      lsd.destroy(() => {
-        client.close()
-        clock.restore()
-        t.end()
-      })
-    }
-  })
-
-  lsd.start()
-})
-
-test('should announce twice when 5min passed', t => {
-  const clock = sinon.useFakeTimers(new Date())
-  let counter = 0
-
-  const opts = {
-    peerId: common.randomId(),
-    infoHash: common.randomHash(),
-    port: common.randomPort()
-  }
-  const lsd = new LSD(opts)
-  const client = dgram.createSocket({ type: 'udp4', reuseAddr: true })
-
-  const host = '239.192.152.143:6771'
-  const port = opts.port.toString()
-  const infoHash = opts.infoHash.toString('hex')
-  const cookie = `bittorrent-lsd-${opts.peerId.toString('hex')}`
-
-  client.bind(6771, () => {
-    client.addMembership('239.192.152.143')
-  })
-
-  client.on('message', (msg, rinfo) => {
-    const announce = `BT-SEARCH * HTTP/1.1\r\nHost: ${host}\r\nPort: ${port}\r\nInfohash: ${infoHash}\r\ncookie: ${cookie}\r\n\r\n\r\n`
-
-    t.equal(msg.toString(), announce)
-    counter++
-
-    if (counter === 2) {
-      t.pass()
-    } else {
-      clock.tick(300000) // 5min
-
-      lsd.destroy(() => {
-        client.close()
-        clock.restore()
-        t.end()
-      })
-    }
-  })
-
-  lsd.start()
+  lht.start()
 })

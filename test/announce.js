@@ -1,38 +1,28 @@
 import test from 'tape'
-import * as common from './common.js'
 
-import LSD from '../index.js'
+import { Lht } from '../lht.js'
+import { parseAnnounce } from '../announce.js'
 
 test('should emit a warning when invalid announce header', t => {
-  const opts = {
-    peerId: common.randomId(),
-    infoHash: common.randomHash(),
-    port: common.randomPort()
-  }
-  const lsd = new LSD(opts)
+  const lht = new Lht()
 
-  lsd.on('warning', err => {
-    t.equal(err, 'Invalid LSD announce (header)')
+  lht.on('warning', err => {
+    t.equal(err, 'Invalid LSD or LHT announce (header)')
   })
 
   const announce = 'INVALID ANNOUNCE'
 
-  t.notok(lsd._parseAnnounce(announce))
+  t.notok(parseAnnounce(announce, (err) => lht.emit('warning', err)))
 
-  lsd.destroy(() => {
+  lht.destroy(() => {
     t.end()
   })
 })
 
 test('should emit a warning when invalid announce host', t => {
-  const opts = {
-    peerId: common.randomId(),
-    infoHash: common.randomHash(),
-    port: common.randomPort()
-  }
-  const lsd = new LSD(opts)
+  const lht = new Lht()
 
-  lsd.on('warning', err => {
+  lht.on('warning', err => {
     t.equal(err, 'Invalid LSD announce (host)')
   })
 
@@ -42,22 +32,17 @@ test('should emit a warning when invalid announce host', t => {
 
   const announce = `BT-SEARCH * HTTP/1.1\r\nHost: ${host}\r\nPort: ${port}\r\nInfohash: ${ihash}\r\n\r\n\r\n`
 
-  t.notok(lsd._parseAnnounce(announce))
+  t.notok(parseAnnounce(announce, (err) => lht.emit('warning', err)))
 
-  lsd.destroy(() => {
+  lht.destroy(() => {
     t.end()
   })
 })
 
 test('should emit a warning when invalid announce port', t => {
-  const opts = {
-    peerId: common.randomId(),
-    infoHash: common.randomHash(),
-    port: common.randomPort()
-  }
-  const lsd = new LSD(opts)
+  const lht = new Lht()
 
-  lsd.on('warning', err => {
+  lht.on('warning', err => {
     t.equal(err, 'Invalid LSD announce (port)')
   })
 
@@ -67,22 +52,17 @@ test('should emit a warning when invalid announce port', t => {
 
   const announce = `BT-SEARCH * HTTP/1.1\r\nHost: ${host}\r\nPort: ${port}\r\nInfohash: ${ihash}\r\n\r\n\r\n`
 
-  t.notok(lsd._parseAnnounce(announce))
+  t.notok(parseAnnounce(announce, (err) => lht.emit('warning', err)))
 
-  lsd.destroy(() => {
+  lht.destroy(() => {
     t.end()
   })
 })
 
 test('should emit a warning when invalid announce infoHash', t => {
-  const opts = {
-    peerId: common.randomId(),
-    infoHash: common.randomHash(),
-    port: common.randomPort()
-  }
-  const lsd = new LSD(opts)
+  const lht = new Lht()
 
-  lsd.on('warning', err => {
+  lht.on('warning', err => {
     t.equal(err, 'Invalid LSD announce (infoHash)')
   })
 
@@ -92,129 +72,117 @@ test('should emit a warning when invalid announce infoHash', t => {
 
   const announce = `BT-SEARCH * HTTP/1.1\r\nHost: ${host}\r\nPort: ${port}\r\nInfohash: ${ihash}\r\n\r\n\r\n`
 
-  t.notok(lsd._parseAnnounce(announce))
+  t.notok(parseAnnounce(announce, (err) => lht.emit('warning', err)))
 
-  lsd.destroy(() => {
+  lht.destroy(() => {
     t.end()
   })
 })
 
 test('should parse an announce without cookie', t => {
-  const opts = {
-    peerId: common.randomId(),
-    infoHash: common.randomHash(),
-    port: common.randomPort()
-  }
-  const lsd = new LSD(opts)
+  const lht = new Lht()
 
   const host = '239.192.152.143:6771'
   const port = '51413'
   const ihash = 'F60AE72E07713D4F14878A5B24ADB34992401AC9'
+  const type = 'LSD'
 
   const announce = `BT-SEARCH * HTTP/1.1\r\nHost: ${host}\r\nPort: ${port}\r\nInfohash: ${ihash}\r\n\r\n\r\n`
 
-  const parsedAnnounce = lsd._parseAnnounce(announce)
+  const parsedAnnounce = parseAnnounce(announce)
   const expectedAnnounce = {
     host,
     port,
     infoHash: [ihash],
-    cookie: null
+    cookie: null,
+    type
   }
 
   t.deepEqual(parsedAnnounce, expectedAnnounce)
 
-  lsd.destroy(() => {
+  lht.destroy(() => {
     t.end()
   })
 })
 
 test('should parse an announce with a single infohash', t => {
-  const opts = {
-    peerId: common.randomId(),
-    infoHash: common.randomHash(),
-    port: common.randomPort()
-  }
-  const lsd = new LSD(opts)
+  const lht = new Lht()
 
   const host = '239.192.152.143:6771'
   const port = '51413'
   const ihash = 'F60AE72E07713D4F14878A5B24ADB34992401AC9'
   const cookie = 'cookie'
+  const type = 'LSD'
 
   const announce = `BT-SEARCH * HTTP/1.1\r\nHost: ${host}\r\nPort: ${port}\r\nInfohash: ${ihash}\r\ncookie: ${cookie}\r\n\r\n\r\n`
 
-  const parsedAnnounce = lsd._parseAnnounce(announce)
+  const parsedAnnounce = parseAnnounce(announce)
   const expectedAnnounce = {
     host,
     port,
     infoHash: [ihash],
-    cookie
+    cookie,
+    type
   }
 
   t.deepEqual(parsedAnnounce, expectedAnnounce)
 
-  lsd.destroy(() => {
+  lht.destroy(() => {
     t.end()
   })
 })
 
 test('should parse an announce with multiple infohashes', t => {
-  const opts = {
-    peerId: common.randomId(),
-    infoHash: common.randomHash(),
-    port: common.randomPort()
-  }
-  const lsd = new LSD(opts)
+  const lht = new Lht()
 
   const host = '239.192.152.143:6771'
   const port = '51413'
   const ihashA = 'F60AE72E07713D4F14878A5B24ADB34992401AC9'
   const ihashB = '562A86EFE4DC660E9D216A901D74338AF34205AA'
   const cookie = 'cookie'
+  const type = 'LSD'
 
   const announce = `BT-SEARCH * HTTP/1.1\r\nHost: ${host}\r\nPort: ${port}\r\nInfohash: ${ihashA}\r\nInfohash: ${ihashB}\r\ncookie: ${cookie}\r\n\r\n\r\n`
 
-  const parsedAnnounce = lsd._parseAnnounce(announce)
+  const parsedAnnounce = parseAnnounce(announce)
   const expectedAnnounce = {
     host,
     port,
     infoHash: [ihashA, ihashB],
-    cookie
+    cookie,
+    type
   }
 
   t.deepEqual(parsedAnnounce, expectedAnnounce)
 
-  lsd.destroy(() => {
+  lht.destroy(() => {
     t.end()
   })
 })
 
 test('should parse an announce with ipv6 host', t => {
-  const opts = {
-    peerId: common.randomId(),
-    infoHash: common.randomHash(),
-    port: common.randomPort()
-  }
-  const lsd = new LSD(opts)
+  const lht = new Lht()
 
   const host = '[ff15::efc0:988f]:6771'
   const port = '51413'
   const ihash = 'F60AE72E07713D4F14878A5B24ADB34992401AC9'
   const cookie = 'cookie'
+  const type = 'LSD'
 
   const announce = `BT-SEARCH * HTTP/1.1\r\nHost: ${host}\r\nPort: ${port}\r\nInfohash: ${ihash}\r\ncookie: ${cookie}\r\n\r\n\r\n`
 
-  const parsedAnnounce = lsd._parseAnnounce(announce)
+  const parsedAnnounce = parseAnnounce(announce)
   const expectedAnnounce = {
     host,
     port,
     infoHash: [ihash],
-    cookie
+    cookie,
+    type
   }
 
   t.deepEqual(parsedAnnounce, expectedAnnounce)
 
-  lsd.destroy(() => {
+  lht.destroy(() => {
     t.end()
   })
 })
