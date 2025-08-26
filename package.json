@@ -76,6 +76,7 @@
     "lint": "standard",
     "lint:fix": "standard --fix",
     "test": "npm run lint && npm run test:tape",
-    "test:tape": "tape test/*.js"
+    "test:tape": "tape test/*.js",
+    "dev:server": "DEBUG='bittorrent-lht*' ./lht-server.js"
   }
 }
