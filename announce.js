@@ -6,19 +6,19 @@ export function lhtAnnounce (infoHash, cookie, host = `${LSD_HOST}:${LSD_PORT}`)
   return `BT-LHT * HTTP/1.1\r\nHost: ${host}\r\nPort: 0\r\nInfohash: ${infoHash}\r\ncookie: ${cookie}\r\n\r\n\r\n`
 }
 
+export function checkLsdHost (host) {
+  return /^(239.192.152.143|\[ff15::efc0:988f]):6771$/.test(host)
+}
+
+export function checkPort (port) {
+  return /^\d+$/.test(port)
+}
+
+export function checkInfoHash (infoHash) {
+  return /^[0-9a-fA-F]{40}$/.test(infoHash)
+}
+
 export function parseAnnounce (announce, err = () => undefined) {
-  const checkHost = (host) => {
-    return /^(239.192.152.143|\[ff15::efc0:988f]):6771$/.test(host)
-  }
-
-  const checkPort = (port) => {
-    return /^\d+$/.test(port)
-  }
-
-  const checkInfoHash = (infoHash) => {
-    return /^[0-9a-fA-F]{40}$/.test(infoHash)
-  }
-
   debug('parse announce', announce)
   const sections = announce.split('\r\n')
 
@@ -34,7 +34,7 @@ export function parseAnnounce (announce, err = () => undefined) {
   const host = sections[1].split('Host: ')[1]
 
   // TODO host check for arbitrary ipv4/ipv6 port pair for LHT
-  if (type === 'LSD' && !checkHost(host)) {
+  if (type === 'LSD' && !checkLsdHost(host)) {
     err(`Invalid ${type} announce (host)`)
     return null
   }
