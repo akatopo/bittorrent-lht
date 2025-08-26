@@ -160,7 +160,7 @@ test('should remove a peer from the LHT after 20 minutes of LSD announce inactiv
   peersInfoHashes.forEach(([peer, infoHash]) => server.lht.emit('peer', peer, infoHash))
 })
 
-test('should do an LHT announce when receiving an LHT announce w/ a cookie that does NOT start w/ bittorrent-lht-*', t => {
+test('should do an LHT announce when receiving an LHT announce w/ a cookie that is not the same as the announcer', t => {
   const server = new Server()
   const client = dgram.createSocket('udp4')
 
@@ -182,7 +182,7 @@ test('should do an LHT announce when receiving an LHT announce w/ a cookie that 
         t.error(err)
       }
 
-      const badAnnounce = lhtAnnounce('DEADBEEF07713D4F14878A5B24ADB34992401AC8', `${cookiePrefix}-bad`)
+      const badAnnounce = lhtAnnounce('DEADBEEF07713D4F14878A5B24ADB34992401AC8', `${server.lht.cookie}`)
       const announce = lhtAnnounce(announceHash, 'a-cookie')
       client.send(badAnnounce)
       client.send(announce)
