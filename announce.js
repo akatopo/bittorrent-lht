@@ -2,8 +2,11 @@ import { LSD_HOST, LSD_PORT } from './lsd-constants.js'
 import Debug from 'debug'
 const debug = Debug('bittorrent-lht:announce')
 
-export function lhtAnnounce (infoHash, cookie, host = `${LSD_HOST}:${LSD_PORT}`) {
-  return `BT-LHT * HTTP/1.1\r\nHost: ${host}\r\nPort: 0\r\nInfohash: ${infoHash}\r\ncookie: ${cookie}\r\n\r\n\r\n`
+export function lhtAnnounce (infoHash, cookie, peers = []) {
+  const host = `${LSD_HOST}:${LSD_PORT}`
+  const peerSection = peers.map(p => `peer: ${p}`).join('\r\n')
+
+  return `BT-LHT * HTTP/1.1\r\nHost: ${host}\r\nPort: 0\r\nInfohash: ${infoHash}\r\ncookie: ${cookie}\r\n${peerSection}\r\n\r\n`
 }
 
 export function checkLsdHost (host) {
@@ -33,7 +36,6 @@ export function parseAnnounce (announce, err = () => undefined) {
 
   const host = sections[1].split('Host: ')[1]
 
-  // TODO host check for arbitrary ipv4/ipv6 port pair for LHT
   if (type === 'LSD' && !checkLsdHost(host)) {
     err(`Invalid ${type} announce (host)`)
     return null
@@ -61,11 +63,17 @@ export function parseAnnounce (announce, err = () => undefined) {
     .map((section) => section.split('cookie: ')[1])
     .reduce((acc, cur) => cur, null)
 
+  // TODO peer check for arbitrary ipv4/ipv6 port pair for LHT
+  const peer = sections
+    .filter((section) => section.includes('peer: '))
+    .map((section) => section.split('peer: ')[1])
+
   return {
     host,
     port,
     infoHash,
     cookie,
+    peer,
     type
   }
 }
