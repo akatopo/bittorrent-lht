@@ -91,6 +91,7 @@ test('should parse an announce without cookie', t => {
 
   const parsedAnnounce = parseAnnounce(announce)
   const expectedAnnounce = {
+    peer: [],
     host,
     port,
     infoHash: [ihash],
@@ -118,6 +119,7 @@ test('should parse an announce with a single infohash', t => {
 
   const parsedAnnounce = parseAnnounce(announce)
   const expectedAnnounce = {
+    peer: [],
     host,
     port,
     infoHash: [ihash],
@@ -146,6 +148,7 @@ test('should parse an announce with multiple infohashes', t => {
 
   const parsedAnnounce = parseAnnounce(announce)
   const expectedAnnounce = {
+    peer: [],
     host,
     port,
     infoHash: [ihashA, ihashB],
@@ -173,6 +176,7 @@ test('should parse an announce with ipv6 host', t => {
 
   const parsedAnnounce = parseAnnounce(announce)
   const expectedAnnounce = {
+    peer: [],
     host,
     port,
     infoHash: [ihash],
