@@ -18,7 +18,7 @@ export class Lht extends EventEmitter {
   constructor () {
     super()
 
-    this.cookie = `${cookiePrefix}${os.hostname()}-${crypto.randomBytes(20).toString('hex')}`
+    this.cookie = `${cookiePrefix}${os.hostname()}-${crypto.randomBytes(10).toString('hex')}`
 
     this.destroyed = false
 
@@ -41,7 +41,7 @@ export class Lht extends EventEmitter {
 
       if (parsedAnnounce === null) return
       const { cookie, infoHash, port, type } = parsedAnnounce
-      if ((cookie ?? '').startsWith(cookiePrefix)) return
+      if ((cookie ?? '') === this.cookie) return
 
       switch (type) {
         case 'LSD':
