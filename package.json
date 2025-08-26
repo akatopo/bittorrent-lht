@@ -23,7 +23,8 @@
   "dependencies": {
     "chrome-dgram": "^3.0.6",
     "commander": "^14.0.0",
-    "debug": "^4.2.0"
+    "debug": "^4.2.0",
+    "find-my-way": "^9.3.0"
   },
   "devDependencies": {
     "@webtorrent/semantic-release-config": "1.0.10",
