@@ -15,8 +15,21 @@ export const cookiePrefix = 'bittorrent-lht-'
 // TODO: Implement IPv6
 
 export class Lht extends EventEmitter {
-  constructor () {
+  constructor (interfaceForMembership) {
     super()
+    const interfacesWithIpv4 = Object.fromEntries(
+      Object.entries(os.networkInterfaces())
+        .filter(([, info]) => info.some((i) => !i.internal))
+        .map(([iface, info]) => info.some((i) => i.family === 'IPv4') ? [iface, info.filter(i => i.family === 'IPv4')] : undefined)
+        .filter(x => !!x)
+    )
+
+    const membershipIp = interfacesWithIpv4[interfaceForMembership]?.[0].address ?? undefined
+    if (!membershipIp && interfaceForMembership) {
+      const msg = 'provided interface does not match OS interfaces or does not have an IPV4'
+      this.emit('warning', msg)
+      debug('lht warning', msg)
+    }
 
     this.cookie = `${cookiePrefix}${os.hostname()}-${crypto.randomBytes(10).toString('hex')}`
 
@@ -28,8 +41,10 @@ export class Lht extends EventEmitter {
       debug('listening')
 
       try {
-        this.server.addMembership(LSD_HOST)
+        debug('addMembership', `LSD host: ${LSD_HOST}, membership IP: ${membershipIp ?? 'none'}`)
+        this.server.addMembership(LSD_HOST, membershipIp)
       } catch (err) {
+        debug('addMembership error', err)
         this.emit('warning', err)
       }
     }

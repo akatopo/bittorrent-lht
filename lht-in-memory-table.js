@@ -11,9 +11,9 @@ function getKey (infoHash, peer) {
 }
 
 export class LhtInMemoryTable extends EventEmitter {
-  constructor () {
+  constructor (interfaceForMembership) {
     super()
-    this.lht = new Lht()
+    this.lht = new Lht(interfaceForMembership)
     this.infoHashPeerMap = new Map()
     this.infoHashAndPeerTimeoutMap = new Map()
 
@@ -30,7 +30,7 @@ export class LhtInMemoryTable extends EventEmitter {
         clearTimeout(timeout)
       }
       infoHashAndPeerTimeoutMap.set(key, setTimeout(() => {
-        debug(`removing ${key} from timeout map`)
+        debug(`removing ${key} from timeout map and LHT`)
 
         infoHashAndPeerTimeoutMap.delete(key)
         const peers = infoHashPeerMap.get(infoHash)
@@ -51,7 +51,7 @@ export class LhtInMemoryTable extends EventEmitter {
         const announce = lhtAnnounce(infoHash, this.lht.cookie, peer)
         this.lht.send(announce)
         this.emit('lht', announce)
-        debug(`LHT announce for ${infoHash} from peer`)
+        debug(`LHT announce for ${infoHash} from ${peer}`)
       }
     })
   }
