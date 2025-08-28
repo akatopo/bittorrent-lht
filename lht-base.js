@@ -53,7 +53,6 @@ export class LhtBase extends EventEmitter {
     }
 
     this.server.on('listening', onListening)
-    // this.server.on('message', onMessage)
     this.server.on('error', onError)
   }
 

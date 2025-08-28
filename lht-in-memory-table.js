@@ -104,7 +104,6 @@ export class LhtInMemoryTable extends EventEmitter {
       const [infoHash] = args
       const peers = this.peersFromInfoHash(infoHash)
       if (peers.length) {
-        // const peer = peers[0]
         const announce = lhtAnnounce(infoHash, this.lht.cookie, peers)
         this.lht.send(announce)
         this.emit('lht', announce)
