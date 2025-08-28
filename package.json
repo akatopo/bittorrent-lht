@@ -73,11 +73,15 @@
       "github>webtorrent/renovate-config"
     ]
   },
+  "bin": {
+    "lht-magnet": "./bin/lht-magnet.js",
+    "lht-server": "./bin/lht-server.js"
+  },
   "scripts": {
     "lint": "standard",
     "lint:fix": "standard --fix",
     "test": "npm run lint && npm run test:tape",
     "test:tape": "tape test/*.js",
-    "dev:server": "DEBUG='bittorrent-lht*' ./lht-server.js"
+    "dev:server": "DEBUG='bittorrent-lht*' ./bin/lht-server.js"
   }
 }
