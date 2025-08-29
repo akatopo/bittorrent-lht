@@ -1,7 +1,7 @@
 import test from 'tape'
 
-import { Lht } from '../lht.js'
-import { parseAnnounce } from '../announce.js'
+import { Lht } from '../src/lht.js'
+import { parseAnnounce } from '../src/announce.js'
 
 test('should emit a warning when invalid announce header', t => {
   const lht = new Lht()

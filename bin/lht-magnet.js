@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 import { program } from 'commander'
-import { LhtClient } from '../lht-client.js'
-import { createMagnetLink } from '../magnet.js'
+import { LhtClient } from '../src/lht-client.js'
+import { createMagnetLink } from '../src/magnet.js'
 
 program
   .name('lht-magnet')

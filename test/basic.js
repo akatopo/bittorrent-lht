@@ -3,7 +3,7 @@ import sinon from 'sinon'
 import dgram from 'dgram'
 import os from 'os'
 
-import { Lht } from '../lht.js'
+import { Lht } from '../src/lht.js'
 
 test('should emit a warning when addMembership fails', t => {
   const lht = new Lht()

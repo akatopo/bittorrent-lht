@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { LhtInMemoryTable as Server } from '../lht-in-memory-table.js'
+import { LhtInMemoryTable as Server } from '../src/lht-in-memory-table.js'
 import { program } from 'commander'
 
 program

@@ -2,10 +2,10 @@ import test from 'tape'
 import sinon from 'sinon'
 import dgram from 'dgram'
 
-import { LhtInMemoryTable as Server } from '../lht-in-memory-table.js'
-import { cookiePrefix } from '../lht.js'
-import { lhtAnnounce, parseAnnounce } from '../announce.js'
-import { LSD_PORT, LSD_HOST } from '../lsd-constants.js'
+import { LhtInMemoryTable as Server } from '../src/lht-in-memory-table.js'
+import { cookiePrefix } from '../src/lht.js'
+import { lhtAnnounce, parseAnnounce } from '../src/announce.js'
+import { LSD_PORT, LSD_HOST } from '../src/lsd-constants.js'
 
 const tenMinutes = 10 * 60 * 1000
 
