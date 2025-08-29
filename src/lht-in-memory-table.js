@@ -22,13 +22,13 @@ function getKey (infoHash, peer) {
 function createHttpServer (lhtInMemoryTable) {
   const router = Router()
 
-  router.on('GET', '/lht', (req, res) => {
+  router.on('GET', '/', (req, res) => {
     res.setHeader('Content-Type', 'application/json')
     res.writeHead(200)
     res.end(JSON.stringify(lhtInMemoryTable.infoHashPeerTable))
   })
 
-  router.on('GET', '/lht/:infoHash', (req, res, params) => {
+  router.on('GET', '/:infoHash', (req, res, params) => {
     const { infoHash } = params
     res.setHeader('Content-Type', 'application/json')
     const notFound = () => {
