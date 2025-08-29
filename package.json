@@ -1,7 +1,8 @@
 {
   "name": "@akatopo/bittorrent-lht",
   "description": "A modification of Local Service Discovery (BEP14) based on WebTorrent's LSD implementation",
-  "version": "0.0.1",
+  "version": "0.0.2",
+  "repository": "github:akatopo/bittorrent-lht",
   "author": "Alex Katopodis <akatopo@users.noreply.github.com>",
   "contributors": [
     {
