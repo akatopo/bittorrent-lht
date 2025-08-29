@@ -1,27 +1,21 @@
 {
-  "name": "bittorrent-lsd",
-  "description": "Local Service Discovery (BEP14) implementation",
-  "version": "2.0.0",
-  "author": {
-    "name": "WebTorrent LLC",
-    "email": "feross@webtorrent.io",
-    "url": "https://webtorrent.io"
-  },
-  "chromeapp": {
-    "dgram": "chrome-dgram"
-  },
+  "name": "@akatopo/bittorrent-lht",
+  "description": "A modification of Local Service Discovery (BEP14) based on WebTorrent's LSD implementation",
+  "version": "0.0.1",
+  "author": "Alex Katopodis <akatopo@users.noreply.github.com>",
   "contributors": [
+    {
+      "name": "WebTorrent LLC",
+      "email": "feross@webtorrent.io",
+      "url": "https://webtorrent.io"
+    },
     {
       "name": "Julen Garcia Leunda",
       "email": "hicom150@gmail.com"
     }
   ],
-  "bugs": {
-    "url": "https://github.com/webtorrent/bittorrent-lsd/issues"
-  },
   "type": "module",
   "dependencies": {
-    "chrome-dgram": "^3.0.6",
     "commander": "^14.0.0",
     "debug": "^4.2.0",
     "find-my-way": "^9.3.0"
@@ -33,24 +27,15 @@
     "standard": "*",
     "tape": "5.9.0"
   },
-  "funding": [
-    {
-      "type": "github",
-      "url": "https://github.com/sponsors/feross"
-    },
-    {
-      "type": "patreon",
-      "url": "https://www.patreon.com/feross"
-    },
-    {
-      "type": "consulting",
-      "url": "https://feross.org/support"
-    }
+  "files": [
+    "src/*.js",
+    "index.js"
   ],
   "keywords": [
     "bittorrent",
     "bep14",
     "lsd",
+    "lht",
     "local service discovery",
     "protocol",
     "peer",
@@ -74,8 +59,8 @@
     ]
   },
   "bin": {
-    "lht-magnet": "./bin/lht-magnet.js",
-    "lht-server": "./bin/lht-server.js"
+    "lht-magnet": "bin/lht-magnet.js",
+    "lht-server": "bin/lht-server.js"
   },
   "scripts": {
     "lint": "standard",
